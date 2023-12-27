@@ -16,6 +16,10 @@ const website = readWebsite();
 let keys = readKeyFile();
 
 app.get('/', (req, res) => {
+  if(req.query.dev === "true") {
+    res.status(200).send(readWebsite());
+    return;
+  }
   res.status(200).send(website);
 })
 
