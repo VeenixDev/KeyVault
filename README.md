@@ -17,6 +17,13 @@ Do NOT use this project on an webserver that is visible to the outsite. This pro
 - Node.js
 - NPM (Node package manager)
 
+## Installation
+
+Download the zip (Source Code) of this project [here](https://github.com/VeenixDev/KeyVault/releases).
+
+Unzip the file and start the `start.bat`.
+
+
 ## Usage
 
 You can start the website and server via `node run start`.
