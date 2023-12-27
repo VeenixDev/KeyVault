@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Keyvault</title>
+
+    <style>
+      body {
+        background: rgb(123, 123, 123);
+      }
+
+      main {
+        display: flex;
+        justify-content: center;
+        flex-flow: column;
+        width: 50vw;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      h1,
+      h2 {
+        width: 100%;
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 5rem;
+        margin-bottom: 0;
+      }
+      h2 {
+        font-size: 2rem;
+      }
+
+      #addKeys input,
+      #addKeys label {
+        height: 2.5rem;
+      }
+
+      #addKeys {
+        margin-bottom: 1rem;
+      }
+
+      #addKeys * {
+        margin-bottom: 0.25rem;
+      }
+
+      #store,
+      #restore,
+      #search {
+        height: 3rem;
+      }
+
+      table {
+        font-size: 1.5rem;
+        color: rgb(240, 240, 240);
+      }
+
+      th {
+        width: 50%;
+        border: 1px solid black;
+      }
+      td button {
+        float: right;
+        font-size: 1.25rem;
+        height: 1.6rem;
+        width: 7rem;
+      }
+      td ul li {
+        height: 1.75rem;
+        list-style: none;
+      }
+      tbody tr:nth-child(even) {
+        background-color: rgb(100, 100, 100);
+      }
+      td ul li:nth-child(even) {
+        background-color: rgb(70, 70, 70);
+      }
+      td {
+        border-bottom: 3px solid black;
+      }
+      td ul {
+        padding: 0;
+      }
+
+      label {
+        font-size: 1.25rem;
+      }
+      label + input {
+        width: 100%;
+      }
+
+      input[type="text"],
+      input[type="submit"],
+      button {
+        font-size: 1.25rem;
+      }
+
+      #entryCount {
+        font-size: 2.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Keyvault</h1>
+      <h2 id="storedInfo"></h2>
+
+      <form id="addKeys">
+        <label for="title"
+          ><abbr title="The title of the game to add keys for"
+            ><strong>Title</strong></abbr
+          ></label
+        >
+        <input type="text" name="title" />
+        <br />
+        <label for="keys"
+          ><abbr title="A comma separated list of keys"
+            ><strong>Keys</strong></abbr
+          ></label
+        >
+        <input type="text" name="keys" />
+        <br />
+        <input type="submit" value="Add keys" />
+      </form>
+      <button id="store">Store Keys</button>
+      <button id="restore">Restore Keys</button>
+
+      <input
+        type="text"
+        id="search"
+        name="search"
+        onkeyup="filterTable()"
+        placeholder="Search..."
+      />
+      <strong><span id="entryCount"></span></strong>
+      <table>
+        <tr>
+          <thead>
+            <th>Title</th>
+            <th>Keys</th>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </tr>
+      </table>
+    </main>
+
+    <script>
+      const addKeyForm = document.getElementById("addKeys");
+      const tableBody = document.getElementById("tableBody");
+      const storeButton = document.getElementById("store");
+      const restoreButton = document.getElementById("restore");
+      const search = document.getElementById("search");
+      const storedInfo = document.getElementById("storedInfo");
+      const entryCount = document.getElementById("entryCount");
+
+      let keyEntryCount = 0;
+      let filteredEntryCount = 0;
+
+      function updateStoredInfo(isStored) {
+        if (isStored) {
+          storedInfo.innerText = "Current changes are stored!";
+          storedInfo.style.color = "black";
+        } else {
+          storedInfo.innerText = "Current changes aren't stored!";
+          storedInfo.style.color = "red";
+        }
+      }
+
+      restoreButton.onclick = (evt) => {
+        evt.preventDefault();
+        const req = new XMLHttpRequest();
+        req.open("GET", "http://localhost:3000/restore");
+        req.send();
+
+        req.addEventListener("error", (evt) => {
+          alert("Couldn't restore keys");
+          updateStoredInfo(false);
+        });
+
+        req.addEventListener("load", (evt) => {
+          updateStoredInfo(true);
+          updateTable();
+        });
+      };
+      storeButton.onclick = (evt) => {
+        evt.preventDefault();
+        const req = new XMLHttpRequest();
+        req.open("GET", "http://localhost:3000/store");
+        req.send();
+
+        req.addEventListener("error", (evt) => {
+          alert("Couldn't store keys");
+          updateStoredInfo(false);
+        });
+
+        updateStoredInfo(true);
+      };
+
+      function updateCounter() {
+        const filteredCount = () =>
+          keyEntryCount == filteredEntryCount || filteredEntryCount == 0
+            ? ""
+            : `(${filteredEntryCount})`;
+        entryCount.innerHTML = `Entries: ${keyEntryCount} ${filteredCount()}`;
+      }
+
+      function filterTable() {
+        const filter = search.value.toUpperCase();
+        const rows = tableBody.getElementsByTagName("tr");
+
+        filteredEntryCount = 0;
+        for (let i = 0; i < rows.length; i++) {
+          const gameNameElement = rows[i].getElementsByTagName("td")[0];
+          if (gameNameElement) {
+            const gameName = gameNameElement.textContent || gameName.innerText;
+            if (gameName.toUpperCase().indexOf(filter) > -1) {
+              rows[i].style.display = "";
+              filteredEntryCount++;
+            } else {
+              rows[i].style.display = "none";
+            }
+          }
+        }
+
+        updateCounter();
+      }
+
+      function deleteKey(game, key) {
+        const rows = tableBody.getElementsByTagName("tr");
+        const updatedList = [];
+
+        for (let i = 0; i < rows.length; i++) {
+          const gameNameElement = rows[i].getElementsByTagName("td")[0];
+          if (gameNameElement) {
+            const gameName = gameNameElement.textContent || gameName.innerText;
+            if (gameName === game) {
+              const listItems = rows[i].getElementsByTagName("li");
+              for (let j = 0; j < listItems.length; j++) {
+                const keyValue = listItems[j].textContent.replace("Delete", "");
+                if (keyValue !== key) {
+                  updatedList.push(keyValue);
+                }
+              }
+            }
+          }
+        }
+
+        const req = new XMLHttpRequest();
+        req.open("POST", "http://localhost:3000/key");
+        req.setRequestHeader("Content-Type", "application/json");
+        req.send(
+          JSON.stringify({
+            title: game,
+            keys: updatedList,
+            deleteKeys: true,
+          })
+        );
+
+        req.onreadystatechange = function () {
+          //Call a function when the state changes.
+          if (req.readyState == 4 && req.status == 200) {
+            updateTable();
+            updateStoredInfo(false);
+          }
+        };
+      }
+
+      function activateGame(key) {
+        window.open(`https://store.steampowered.com/account/registerkey?key=${key}`, "_blank");
+      }
+
+      function updateTable() {
+        let innerHtml = "";
+        const req = new XMLHttpRequest();
+        req.open("GET", "http://localhost:3000/keys");
+        req.send();
+
+        req.addEventListener("load", (evt) => {
+          const keys = JSON.parse(evt.target.response);
+          let counter = 0;
+          for (let element in keys) {
+            counter++;
+            const game = keys[element];
+            innerHtml = innerHtml.concat(`<tr><td>${game.title}</td><td><ul>`);
+            for (let i = 0; i < game.keys.length; i++) {
+              innerHtml = innerHtml.concat(
+                `<li>${game.keys[i]}<button onclick="activateGame('${game.keys[i]}')">Activate</button><button onclick="deleteKey('${game.title}', '${game.keys[i]}')">Delete</button></li>`
+              );
+            }
+            innerHtml = innerHtml.concat("</ul></td></tr>");
+          }
+          keyEntryCount = counter;
+          tableBody.innerHTML = innerHtml;
+          updateCounter();
+        });
+      }
+
+      addKeyForm.onsubmit = (event) => {
+        event.preventDefault();
+        const inputElements = addKeyForm.getElementsByTagName("input");
+        if (!inputElements[0].value || !inputElements[1].value) {
+          return;
+        }
+        const req = new XMLHttpRequest();
+        req.open("POST", "http://localhost:3000/key");
+        req.setRequestHeader("Content-Type", "application/json");
+        req.send(
+          JSON.stringify({
+            title: inputElements[0].value,
+            keys: inputElements[1].value.split(","),
+            deleteKeys: false,
+          })
+        );
+
+        req.onreadystatechange = function () {
+          //Call a function when the state changes.
+          if (req.readyState == 4 && req.status == 200) {
+            updateTable();
+            updateStoredInfo(false);
+            inputElements[0].value = "";
+            inputElements[1].value = "";
+          }
+        };
+      };
+
+      updateTable();
+      updateStoredInfo(true);
+    </script>
+  </body>
+</html>
