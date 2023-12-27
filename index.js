@@ -93,7 +93,7 @@ app.get("/restore", (req, res) => {
 })
 
 app.listen(3000, () => {
-  console.log("Now listening on port 3000");
+  console.log("Now listening on http://localhost:3000");
 }).on("close", () => {
   console.log("Shutting down!");
 })

@@ -15,6 +15,7 @@ Do NOT use this project on an webserver that is visible to the outsite. This pro
 ## Requirements
 
 - Node.js
+- NPM (Node package manager)
 
 ## Usage
 
@@ -23,6 +24,8 @@ You can start the website and server via `node run start`.
 If you wish to start it in development mode use `node run start:dev`
 
 You can see the site under `http://localhost:3000` (uncached website `http://localhost:3000?dev=true`)
+
+For Windows you can use the `start.bat` to start the server. This script starts the server and opens your default browser with the website open!
 
 ## Website
 
