@@ -144,6 +144,16 @@
           <tbody id="tableBody"></tbody>
         </tr>
       </table>
+      <label for="itemsPerPage">Entries per page</label>
+      <select onchange="updateTable()" name="itemsPerPage" id="itemsPerPage">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+      </select>
+      <div class="pageSelector">
+        <button onclick="lastPage()">&lt;</button><span id="pageInfo">1</span><button onclick="nextPage()">&gt;</button>
+      </div>
     </main>
 
     <script>
@@ -154,9 +164,13 @@
       const search = document.getElementById("search");
       const storedInfo = document.getElementById("storedInfo");
       const entryCount = document.getElementById("entryCount");
+      const pageInfo = document.getElementById("pageInfo");
+      const pageSelector = document.getElementById("itemsPerPage");
 
       let keyEntryCount = 0;
       let filteredEntryCount = 0;
+      let page = 1;
+      let maxPages = 0;
 
       function updateStoredInfo(isStored) {
         if (isStored) {
@@ -204,6 +218,7 @@
             ? ""
             : `(${filteredEntryCount})`;
         entryCount.innerHTML = `Entries: ${keyEntryCount} ${filteredCount()}`;
+        pageInfo.innerHTML = `${page} / ${maxPages}`;
       }
 
       function filterTable() {
@@ -271,14 +286,30 @@
         window.open(`https://store.steampowered.com/account/registerkey?key=${key}`, "_blank");
       }
 
+      function lastPage() {
+        page = Math.max(0, page - 1);
+        updateTable();
+      }
+
+      function nextPage() {
+        page = Math.min(maxPages, page + 1);
+        updateTable();
+      }
+
       function updateTable() {
         let innerHtml = "";
         const req = new XMLHttpRequest();
-        req.open("GET", "http://localhost:3000/keys");
+        console.log(page);
+        req.open("GET", `http://localhost:3000/keys?page=${page}&perPage=${pageSelector.value}`);
         req.send();
 
         req.addEventListener("load", (evt) => {
-          const keys = JSON.parse(evt.target.response);
+          const response = JSON.parse(evt.target.response);
+          const keys = response.data;
+          const pageCount = response.pages;
+
+          maxPages = pageCount;
+
           let counter = 0;
           for (let element in keys) {
             counter++;

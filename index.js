@@ -5,15 +5,34 @@ const bodyParser = require("body-parser");
 const app = express();
 app.use(bodyParser.json());
 
-const website = fs.readFileSync("./assets/index.html").toString("utf-8");
-let keys = JSON.parse(fs.readFileSync("./keys.json").toString());
+function readKeyFile() {
+  return JSON.parse(fs.readFileSync("./keys.json").toString());
+}
+function readWebsite() {
+  return fs.readFileSync("./assets/index.html").toString("utf-8")
+}
+
+const website = readWebsite();
+let keys = readKeyFile();
 
 app.get('/', (req, res) => {
   res.status(200).send(website);
 })
 
 app.get("/keys", (req, res) => {
-  res.status(200).send(keys);
+  const itemsPerPage = Number(Math.max(0, req.query.perPage))||10;
+  const page = Number(Math.max(0, req.query.page))||1;
+
+  const pages = Math.ceil(Object.keys(keys).length / itemsPerPage);
+
+  const data = {};
+
+  const entries = Object.entries(keys);
+  const slice = entries.slice(itemsPerPage * (page - 1), itemsPerPage * (page - 1) + itemsPerPage);
+  for(let entry of slice) {
+    data[entry[0]] = entry[1];
+  }
+  res.contentType("application/json").status(200).send({data, itemsPerPage, pages});
 })
 
 app.post("/key", (req, res) => {
