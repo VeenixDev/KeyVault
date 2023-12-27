@@ -22,12 +22,15 @@ app.get('/', (req, res) => {
 app.get("/keys", (req, res) => {
   const itemsPerPage = Number(Math.max(0, req.query.perPage))||10;
   const page = Number(Math.max(0, req.query.page))||1;
+  const search = req.query.search?.toUpperCase()||"";
 
   const pages = Math.ceil(Object.keys(keys).length / itemsPerPage);
 
   const data = {};
 
-  const entries = Object.entries(keys);
+  const entries = Object.entries(keys).filter((val) => {
+    return val[0].toUpperCase().indexOf(search) > -1;
+  });
   const slice = entries.slice(itemsPerPage * (page - 1), itemsPerPage * (page - 1) + itemsPerPage);
   for(let entry of slice) {
     data[entry[0]] = entry[1];

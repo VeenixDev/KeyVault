@@ -131,7 +131,7 @@
         type="text"
         id="search"
         name="search"
-        onkeyup="filterTable()"
+        onkeyup="updateTable()"
         placeholder="Search..."
       />
       <strong><span id="entryCount"></span></strong>
@@ -221,27 +221,6 @@
         pageInfo.innerHTML = `${page} / ${maxPages}`;
       }
 
-      function filterTable() {
-        const filter = search.value.toUpperCase();
-        const rows = tableBody.getElementsByTagName("tr");
-
-        filteredEntryCount = 0;
-        for (let i = 0; i < rows.length; i++) {
-          const gameNameElement = rows[i].getElementsByTagName("td")[0];
-          if (gameNameElement) {
-            const gameName = gameNameElement.textContent || gameName.innerText;
-            if (gameName.toUpperCase().indexOf(filter) > -1) {
-              rows[i].style.display = "";
-              filteredEntryCount++;
-            } else {
-              rows[i].style.display = "none";
-            }
-          }
-        }
-
-        updateCounter();
-      }
-
       function deleteKey(game, key) {
         const rows = tableBody.getElementsByTagName("tr");
         const updatedList = [];
@@ -300,7 +279,7 @@
         let innerHtml = "";
         const req = new XMLHttpRequest();
         console.log(page);
-        req.open("GET", `http://localhost:3000/keys?page=${page}&perPage=${pageSelector.value}`);
+        req.open("GET", `http://localhost:3000/keys?page=${page}&perPage=${pageSelector.value}&search=${search.value}`);
         req.send();
 
         req.addEventListener("load", (evt) => {
