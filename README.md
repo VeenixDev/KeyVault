@@ -21,6 +21,8 @@ Do NOT use this project on an webserver that is visible to the outsite. This pro
 
 Download the zip (Source Code) of this project [here](https://github.com/VeenixDev/KeyVault/releases).
 
+Rename `keys.example.json` to `keys.json`.
+
 Unzip the file and start the `start.bat`.
 
 
