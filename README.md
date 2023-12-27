@@ -2,7 +2,7 @@
 
 This is a simple backend + website to store keys.
 
-For example you can store keys for shops on this website.
+For example you can store keys for steam on this website.
 
 This project was a small project I did to better keep track of my unused Steam keys therefor its not beautiful but everything should function.
 
